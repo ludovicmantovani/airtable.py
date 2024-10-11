@@ -19,6 +19,10 @@ class IsNotString(Exception):
     pass
 
 
+class IsNotSortCriteriaDictionary(Exception):
+    pass
+
+
 def check_integer(integer):
     if not integer:
         return False
@@ -32,6 +36,16 @@ def check_string(string):
         return False
     if not isinstance(string, six.string_types):
         raise IsNotString('Expected a string', string)
+    return True
+
+
+def check_sort_criteria_dictionary(dictionary):
+    if not dictionary:
+        return False
+    if not isinstance(dictionary, dict):
+        raise IsNotSortCriteriaDictionary('Expected a dictionary', dictionary)
+    if 'field' not in dictionary:
+        raise IsNotSortCriteriaDictionary('Expected a dictionary with a field key', dictionary)
     return True
 
 
@@ -109,7 +123,7 @@ class Airtable(object):
 
     def get(  # pylint: disable=invalid-name
             self, table_name, record_id=None, limit=0, offset=None,
-            filter_by_formula=None, view=None, max_records=0, fields=None):
+            filter_by_formula=None, view=None, max_records=0, fields=None, sort=None):
         params = {}
         if check_string(record_id):
             url = posixpath.join(table_name, record_id)
@@ -132,6 +146,12 @@ class Airtable(object):
                 if len(fields) == 1:
                     fields = fields + fields
                 params.update({'fields': fields})
+            if sort and isinstance(sort, list):
+                for i, sort_criteria in enumerate(sort):
+                    if check_sort_criteria_dictionary(sort_criteria):
+                        params.update({'sort[%s][field]' % i: sort_criteria['field']})
+                        if 'direction' in sort_criteria:
+                            params.update({'sort[%s][direction]' % i: sort_criteria['direction']})
 
         return self.__request('GET', url, params)
 
@@ -217,9 +237,9 @@ class Table(Generic[_T]):
 
     def get(  # pylint:disable=invalid-name
             self, record_id=None, limit=0, offset=None,
-            filter_by_formula=None, view=None, max_records=0, fields=None):
+            filter_by_formula=None, view=None, max_records=0, fields=None, sort=None):
         return self._client.get(
-            self.table_name, record_id, limit, offset, filter_by_formula, view, max_records, fields)
+            self.table_name, record_id, limit, offset, filter_by_formula, view, max_records, fields, sort)
 
     def iterate(
             self, batch_size=0, filter_by_formula=None,

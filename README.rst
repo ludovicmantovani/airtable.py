@@ -66,7 +66,7 @@ Given a table name, fetched one or multiple records.
 .. code:: python
 
     at.get(table_name, record_id=None, limit=0, offset=None,
-           filter_by_formula=None, view=None, max_records=0, fields=[])
+           filter_by_formula=None, view=None, max_records=0, fields=[], sort=[])
 
 where
 
@@ -79,6 +79,7 @@ where
     filter_by_formula (optional) is a string to filter the retrieving records (see filterByFormula in the AirTable documentation)
     max_records (optional) is the total number of records that will be returned (see maxRecords in the AirTable documentation)
     fields (optional) is a list of strings with the field names to be returned
+    sort (optional) is a list of dictionaries with the sort criteria ("field" and "direction" (optional) keys)
 
 Iterate
 ~~~~~~~
